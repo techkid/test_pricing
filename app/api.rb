@@ -1,5 +1,6 @@
 require "grape"
 require "peddler"
+require File.expand_path("../../config/mws.rb", __FILE__)
 
 module Pricing
   class API < Grape::API
@@ -17,7 +18,12 @@ module Pricing
     route_param :isbn do
       get do
         begin
-          client = MWS.products
+          client = MWS.products(
+            marketplace_id: MARKETPLACE,
+            merchant_id: MERCHANT,
+            aws_access_key_id: KEY,
+            aws_secret_access_key: SECRET
+          )
           listing = client.get_matching_product_for_id("ISBN", *["#{params[:isbn]}"])
           asin = listing.parse["Products"] ? listing.parse["Products"]["Product"].first["Identifiers"]["MarketplaceASIN"]["ASIN"].to_s : ""
           return {status: "fail", message: "invalid isbn"} if asin.blank?
