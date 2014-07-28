@@ -5,5 +5,5 @@ template "#{release_path}/config/mws.rb" do
   mode "0660"
   owner new_resource.user
   group new_resource.group
-  variables(:data => (node[:deploy][new_resource.application.to_sym][:mws] || {}), :environment => new_resource.environment["RAILS_ENV"])
+  variables(:data => (new_resource.params[:deploy_data]["mws"] || {}), :environment => new_resource.environment["RAILS_ENV"])
 end.run_action(:create)
