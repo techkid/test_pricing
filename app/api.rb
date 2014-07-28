@@ -25,7 +25,11 @@ module Pricing
             aws_secret_access_key: SECRET
           )
           listing = client.get_matching_product_for_id("ISBN", *["#{params[:isbn]}"])
-          asin = listing.parse["Products"] ? listing.parse["Products"]["Product"].first["Identifiers"]["MarketplaceASIN"]["ASIN"].to_s : ""
+          asin = if listing.parse["Products"]
+            ((product = listing.parse["Products"]["Product"]).is_a?(Array) ? product.first : product)["Identifiers"]["MarketplaceASIN"]["ASIN"].to_s
+          else
+            ""
+          end
           return {status: "fail", message: "invalid isbn"} if asin.blank?
           competitive = nil
           lowest = nil
