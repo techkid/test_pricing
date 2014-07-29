@@ -24,21 +24,34 @@ module Pricing
             aws_access_key_id: KEY,
             aws_secret_access_key: SECRET
           )
-          listing = client.get_matching_product_for_id("ISBN", *["#{params[:isbn]}"])
+
+          listing = nil
+          competitive = nil
+          lowest = nil
+
+          x = Thread.new do
+#            listing = client.list_matching_products("#{params[:isbn]}")
+            listing = client.get_matching_product_for_id("ISBN", *["#{params[:isbn]}"])
+          end
+          x.join
+
+#          asin = params[:isbn]
+#=begin
           asin = if listing.parse["Products"]
             ((product = listing.parse["Products"]["Product"]).is_a?(Array) ? product.first : product)["Identifiers"]["MarketplaceASIN"]["ASIN"].to_s
           else
             ""
           end
           return {status: "fail", message: "invalid isbn"} if asin.blank?
-          competitive = nil
-          lowest = nil
+#=end
+
           c = Thread.new do
             competitive = client.get_competitive_pricing_for_asin(*[asin])
           end
           l = Thread.new do
             lowest = client.get_lowest_offer_listings_for_asin(*[asin])
           end
+#          x.join
           c.join
           l.join
           {status: "done", message: "ok", listing: listing.parse, competitive: competitive.parse, lowest: lowest.parse}
